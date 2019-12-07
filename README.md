@@ -13,6 +13,7 @@
 ## 软件
 
 * 刷好`Rambian`
+
     笔者的系统是`ARMBIAN 5.77`, 不知道怎么做的看看[恩山](https://www.right.com.cn/forum/forum-158-1.html)
 
 * 设置静态IP
@@ -47,7 +48,7 @@ inventry:
 
 ansible.cfg:
 
-    修改`remote_user`, 缺省是`root`
+    修改remote_user, 缺省是root
 
 ## 试试 ansible
 
