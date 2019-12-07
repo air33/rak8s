@@ -77,7 +77,7 @@ ansible-playbook dashboard.yml
 ansible-playbook cleanup.yml
 ```
 
-可能并没有把所以更改都复原
+可能并没有把所有更改都复原
 
 # 部署后
 
