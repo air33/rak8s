@@ -43,11 +43,11 @@ git clone git@github.com:air33/rak8s.git
 
 inventry:
 
-    设置的集群的IP
+    设置集群的IP
 
 ansible.cfg:
 
-    修改remote_user, 缺省是root
+    修改`remote_user`, 缺省是`root`
 
 ## 试试 ansible
 
