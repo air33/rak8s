@@ -24,7 +24,8 @@ kubernetes_version: "v1.14.1"
 # v1.9.6
 # v1.9.5
 
-docker_ce_version: "18.06.2~ce~3-0~raspbian"
+# docker_ce_version: "18.06.2~ce~3-0~raspbian"
+docker_ce_version: "18.06.3~ce~3-0~debian"
 # Available versions:
 # 18.05.0~ce~3-0~raspbian
 # 18.04.0~ce~3-0~raspbian

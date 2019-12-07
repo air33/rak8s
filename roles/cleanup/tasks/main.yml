@@ -36,11 +36,11 @@
   ignore_errors: True
 
 - name: Wait for Reboot
-  local_action: wait_for
-  args:
+  wait_for:
     host: "{{ inventory_hostname }}"
     port: 22
     delay: 15
     timeout: 120
   become: False
+  connection: local
 

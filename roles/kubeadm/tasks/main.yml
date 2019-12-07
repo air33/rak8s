@@ -6,6 +6,18 @@
   shell: dphys-swapfile swapoff && dphys-swapfile uninstall && update-rc.d dphys-swapfile remove
   ignore_errors: True
 
+- name: disable the armbian-zram-config service
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^ENABLED\s*=\s*true$'
+    replace: 'ENABLED=false'
+
+- name: stop the armbian-zram-config
+  systemd:
+    name: armbian-zram-config
+    state: stopped
+    daemon_reload: yes
+
 # Docker Convenience Script Can Only Be Run Once
 - name: Determine if docker is installed
   stat:
@@ -26,6 +38,7 @@
   when: docker_installed.changed
 
 - name: Pass bridged IPv4 traffic to iptables' chains
+  become: yes
   sysctl:
     name: net.bridge.bridge-nf-call-iptables
     value: 1
@@ -37,8 +50,8 @@
     name: apt-transport-https
     state: latest
 
-- name: Add Google Cloud Repo Key
-  shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+- name: Add Aliyun Repo Key
+  shell: curl -s https://mirrors.aliyun.com/kubernetes/apt/doc/apt-key.gpg | apt-key add -
   args:
     warn: no
 
@@ -50,6 +63,12 @@
     group: root
     mode: 0644
 
+- name: "apt-get update"
+  apt:
+    update_cache: yes
+    autoclean: yes
+    autoremove: yes
+
 - name: Install k8s {{ kubernetes_package_version }} Y'all
   apt:
     name: "{{ item }}={{ kubernetes_package_version }}"
@@ -59,3 +78,17 @@
     - kubelet
     - kubeadm
     - kubectl
+
+#https://stackoverflow.com/questions/44133503/kubelet-error-failed-to-start-containermanager-failed-to-initialise-top-level-q
+- name: Add Kukelet extra args
+  template:
+    src: kubelet
+    dest: /etc/default/kubelet
+    owner: root
+    group: root
+    mode: 0644
+
+- name: wait for kubelet started
+  service:
+    name=kubelet
+    state=restarted

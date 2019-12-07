@@ -65,11 +65,13 @@
   ignore_errors: True
   when: cmdline or timezone or hostname is changed
 
+- debug: var=ansible_ssh_host
+
 - name: Wait for Reboot
-  local_action: wait_for
-  args:
-    host: "{{ inventory_hostname }}"
+  wait_for:
+    host: '{{ ansible_ssh_host }}'
     port: 22
-    delay: 15
-    timeout: 120
+    delay: 60
+    timeout: 130
+  connection: local
   become: False
