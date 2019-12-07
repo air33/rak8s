@@ -89,7 +89,7 @@ ansible-playbook cleanup.yml
 kubectl get nodes
 ```
 
-输出
+输出类似
 
 ```
 NAME    STATUS   ROLES    AGE   VERSION
