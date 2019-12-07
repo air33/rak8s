@@ -1,137 +1,116 @@
-# rak8s (pronounced rackets - /ˈrækɪts/)
+# 目的
 
-Stand up a Raspberry Pi based Kubernetes cluster with Ansible
+使用ansible来部署基于N1的k8s集群
 
-## Why?
+略微修改原作者的[rak8s](https://github.com/rak8s/rak8s)脚本
 
-* Raspberry Pis are rad
-* Ansible is awesome
-* Kubernetes is keen
+## 硬件
 
-ARM is going to be the datacenter and home computing platform of the future. It makes a lot of sense to start getting used to working in its unique environment.
+* 斐讯N1(PHICOMM N1)
 
-Also, it's cheaper than a year of GKE. Plus, why not run Kubernetes in your home?
+    至少3个?
 
-# Prerequisites
+## 软件
 
-## Hardware
+* 刷好`Rambian`
+    笔者的系统是`ARMBIAN 5.77`, 不知道怎么做的看看[恩山](https://www.right.com.cn/forum/forum-158-1.html)
 
-* Raspberry Pi 3 (3 or more)
-* Class 10 SD Cards
-* Network connection (wireless or wired) with access to the internet
+* 设置静态IP
 
-## Software
+* 可科学上网
 
-* [Raspbian Lite](https://www.raspberrypi.org/downloads/raspbian/) (installed on each Raspberry Pi)
+* 建议设置ssh自动登陆
 
-* Raspberry Pis should have static IPs
-    * Requirement for Kubernetes and Ansible inventory
-    * You can set these via OS configuration or DHCP reservations (your choice)
-
-* Ability to SSH into all Raspberry Pis and escalate privileges with sudo
-    * The pi user is fine just change its password
+    ```
+    # 生成key
+    ssh-kegen
+    ssh-copy-id root@your-n1-ip
+    ```
 
 * [Ansible](http://docs.ansible.com/ansible/latest/intro_installation.html) 2.2 or higher
 
-* [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/) should be available on the system you intend to use to interact with the Kubernetes cluster.
-    * If you are going to login to one of the Raspberry Pis to interact with the cluster `kubectl` is installed and configured by default on the master Kubernetes master.
-    * If you are administering the cluster from a remote machine (your laptop, desktop, server, bastion host, etc.) `kubectl` will not be installed on the remote machine but it will be configured to interact with the newly built cluster once `kubectl` is installed.
+* [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/) 应该安装在你的管理机上。如果使用PC或笔记本来管理集群，就需要安装在你的PC或笔记本上
 
-## Recommendations
+# 步骤
 
-* Setup SSH key pairs so your password is not required every time Ansible runs
-
-# Stand Up Your Kubernetes Cluster
-
-## Download the latest release or clone the repo:
+## Clone 仓库
 
 ```
-git clone https://github.com/rak8s/rak8s.git
+git clone git@github.com:air33/rak8s.git
 ```
 
-## Modify ansible.cfg and inventory
+## 修改 ansible.cfg 和 inventory
 
-Modify the `inventory` file to suit your environment. Change the names to your liking and the IPs to the addresses of your Raspberry Pis.
+inventry:
 
-If your SSH user on the Raspberry Pis are not the Raspbian default `pi` user modify `remote_user` in the `ansible.cfg`.
+    设置的集群的IP
 
-## Confirm Ansible is working with your Raspberry Pis:
+ansible.cfg:
+
+    修改remote_user, 缺省是root
+
+## 试试 ansible
 
 ```
 ansible -m ping all
 ```
-This may fail to ping if you have not setup SSH keys and only configured your Pi's with passwords
-## Deploy, Deploy, Deploy
+
+## 部署
+
+部署集群
 
 ```
 ansible-playbook cluster.yml
 ```
 
-# Interact with Kubernetes
+安装 dashboard
+
+```
+ansible-playbook dashboard.yml
+```
+
+## 清除设置
+
+
+```
+ansible-playbook cleanup.yml
+```
+
+可能并没有把所以更改都复原
+
+# 部署后
 
 ## CLI
 
-Test your Kubernetes cluster is up and running:
+看看能否从笔记本上执行
 
 ```
 kubectl get nodes
 ```
 
-The output should look something like this:
+输出
 
 ```
-NAME       STATUS    ROLES     AGE       VERSION
-pik8s000   Ready     master    2d        v1.9.1
-pik8s001   Ready     <none>    2d        v1.9.1
-pik8s002   Ready     <none>    2d        v1.9.1
-pik8s003   Ready     <none>    2d        v1.9.1
-pik8s005   Ready     <none>    2d        v1.9.1
-pik8s004   Ready     <none>    2d        v1.9.1
+NAME    STATUS   ROLES    AGE   VERSION
+aml01   Ready    master   30m   v1.14.1
+aml02   Ready    <none>   29m   v1.14.1
+aml03   Ready    <none>   29m   v1.14.1
 ```
 
 ## Dashboard
 
-rak8s installs the non-HTTPS version of the Kubernetes dashboard. This is not recommended for production clusters but, it simplifies the setup. Access the dashboard by running:
+启动
 
 ```
 kubectl proxy
 ```
 
-Then open a web browser and navigate to:
+浏览
 [http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/](http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/)
 
-# Need to Start Over?
 
-Did something go wrong? Nodes fail some process or not joined to the cluster? Break Docker Versions with apt-update? 
-
-Try the process again from the beginning:
+如果要求输入token的话，这样找到
 
 ```
-ansible-playbook cleanup.yml
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
 ```
-Wait for everything to run and then start again with:
-
-```
-ansible-playbook cluster.yml
-```
-
-# Where to Get Help
-
-If you run into any problems please join our welcoming [Discourse](https://discourse.rak8s.io/) community. If you find a bug please open an issue and pull requests are always welcome.
-
-# Etymology
-
-**rak8s** (pronounced rackets - /ˈrækɪts/)
-
-Coined by [Kendrick Coleman](https://github.com/kacole2) on [13 Jan 2018](https://twitter.com/KendrickColeman/status/952242602690129921)
-
-# References & Credits
-
-These playbooks were assembled using a handful of very helpful guides:
-
-* [K8s on (vanilla) Raspbian Lite](https://gist.github.com/alexellis/fdbc90de7691a1b9edb545c17da2d975) by [Alex Ellis](https://www.alexellis.io/)
-* [Installing kubeadm](https://kubernetes.io/docs/setup/independent/install-kubeadm/)
-* [kubernetes/dashboard - Access control - Admin privileges](https://github.com/kubernetes/dashboard/wiki/Access-control#admin-privileges)
-* [Install using the convenience script](https://docs.docker.com/engine/installation/linux/docker-ce/debian/#install-using-the-convenience-script)
-
-A very special thanks to [**Alex Ellis**](https://www.alexellis.io/) and the [OpenFaaS](https://www.openfaas.com/) community for their assitance in answering questions and making sense of some errors.
