@@ -12,7 +12,7 @@
 
 ## 软件
 
-* 刷好`Rambian`
+* 刷好`Armbian`
 
     笔者的系统是`ARMBIAN 5.77`, 不知道怎么做的看看[恩山](https://www.right.com.cn/forum/forum-158-1.html)
 
